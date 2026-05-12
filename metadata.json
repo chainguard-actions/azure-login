@@ -1,0 +1,8 @@
+{
+  "owner": "azure",
+  "name": "login",
+  "alias": "azure-login",
+  "visibility": "internal",
+  "description": "Connect to Azure",
+  "block_publish": false
+}
