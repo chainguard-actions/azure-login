@@ -1,0 +1,102 @@
+#This workflow is used to test azure login action for CLI edge build. Visit, https://github.com/Azure/azure-cli#edge-builds for more details.
+
+name: Run Azure Login Canary Test
+on: 
+  workflow_dispatch:
+  schedule:
+    - cron:  ' 0 8 * * *'  
+permissions:
+      id-token: write
+      contents: read
+jobs: 
+  az-login-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name : Check Az version before installing
+        run: az --version
+        
+      - name: Installing Az CLI Edge build 
+        run: |
+           cd ../..
+           CWD="$(pwd)"
+           python3 -m venv canary-venv
+           . canary-venv/bin/activate
+           echo "***********activated virual environment**********" 
+           python3 -m pip install --upgrade pip
+           echo "***************started installing cli edge build******************"
+           pip3 install -q --upgrade --pre azure-cli --extra-index-url https://azurecliprod.blob.core.windows.net/edge --no-cache-dir --upgrade-strategy=eager
+           echo "***************installed cli Edge build*******************"    
+           echo "$CWD/canary-venv/bin" >> $GITHUB_PATH
+           az --version
+           
+      - name: Check out repository
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        
+      - name: 'Az CLI login with subscription'
+        uses: azure/login@cb79c773a3cfa27f31f25eb3f677781210c9ce3d # v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          
+      - run: |
+          az account show --output none
+          
+      - name: 'Az CLI login without subscription'
+        uses: azure/login@cb79c773a3cfa27f31f25eb3f677781210c9ce3d # v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          allow-no-subscriptions: true
+          
+      - run: |
+          az account show --output none
+          
+      - name: 'Az CLI login with subscription OIDC'
+        uses: azure/login@cb79c773a3cfa27f31f25eb3f677781210c9ce3d # v1
+        with:
+          client-id: ${{ secrets.AZURE_CLIENTID }}
+          tenant-id: ${{ secrets.AZURE_TENANTID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTIONID }} 
+        
+      - run: |
+          az account show --output none
+          
+      - name: 'Az CLI login without subscription OIDC'
+        uses: azure/login@cb79c773a3cfa27f31f25eb3f677781210c9ce3d # v1
+        with:
+          client-id: ${{ secrets.AZURE_CLIENTID }}
+          tenant-id: ${{ secrets.AZURE_TENANTID }}
+          allow-no-subscriptions: true
+          
+      - run: |
+          az account show --output none
+          
+  slack-post-result:
+        runs-on: ubuntu-latest
+#         continue-on-error: true
+        if: ${{ always() }}
+        needs: [az-login-test]
+        steps:
+          - name: Create slack post
+            id: slack_report
+            env:
+              AZ_LOGIN_TEST_RESULT: ${{ needs.az-login-test.result }}
+            run: |
+              TITLE="Login action canary tests update - "
+              DATEVAR=`date "+%d/%m/%YT%H:%M:%S"`
+              TITLE="${TITLE}${DATEVAR}"
+              REPORT="${TITLE}\r\nLink to run - https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID\r\n" 
+              RUN_URL="https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+              REPORT="${REPORT}\r\n"
+              if [ "$AZ_LOGIN_TEST_RESULT" == 'success' ]; then REPORT="${REPORT}\r\n|✅|<${RUN_URL}|az-login-test>"; else REPORT="${REPORT}\r\n|❌|<${RUN_URL}|az-login-test>"; fi
+              echo "report=$REPORT" >> $GITHUB_OUTPUT
+          - name: Post to slack
+            shell: bash
+            env:
+              SLACK_REPORT: ${{ steps.slack_report.outputs.report }}
+              SLACK_CHANNEL_SECRET: ${{ secrets.SLACK_CHANNEL_SECRET }}
+            run: |
+              SLACK_WEBHOOK_URL="https://hooks.slack.com/services/$SLACK_CHANNEL_SECRET"
+              PAYLOAD="{\"blocks\":[{\"type\":\"section\",\"text\":{\"type\":\"mrkdwn\",\"text\":\"$SLACK_REPORT\"}}]}"
+              printf '%s' "$PAYLOAD" > /tmp/slack_payload.json
+              curl -X POST -H 'Content-type:application/json' \
+                --data @/tmp/slack_payload.json \
+                "$SLACK_WEBHOOK_URL"
