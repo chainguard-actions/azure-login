@@ -1,0 +1,36 @@
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    open-pull-requests-limit: 5
+    labels: ["dependencies"]
+    groups:
+      dev-dependencies:
+        dependency-type: "development"
+        update-types: ["minor", "patch"]
+    ignore:
+      # ts-jest currently supports "typescript >=4.3 <7", so cap TypeScript
+      # below 7 (the native compiler rewrite) until ts-jest supports it.
+      - dependency-name: "typescript"
+        versions: [">=7"]
+      # @actions/io, @actions/exec and @actions/core 3.x are ESM-only
+      # (package.json "type": "module"), which the CommonJS ncc bundle cannot
+      # require(). @actions/http-client 3.x is still CommonJS, so it is not
+      # capped. Stay on 2.x for the ESM packages until the action migrates to ESM.
+      - dependency-name: "@actions/io"
+        versions: [">=3"]
+      - dependency-name: "@actions/exec"
+        versions: [">=3"]
+      - dependency-name: "@actions/core"
+        versions: [">=3"]
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    open-pull-requests-limit: 5
+    groups:
+      github-actions:
+        patterns: ["*"]

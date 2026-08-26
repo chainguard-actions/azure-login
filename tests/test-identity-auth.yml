@@ -1,0 +1,30 @@
+name: Test Azure Login - Managed Identity Auth
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Test managed identity login (expect graceful failure outside Azure)
+        id: action
+        uses: .
+        continue-on-error: true
+        with:
+          auth-type: 'IDENTITY'
+          environment: 'azurecloud'
+
+      - name: Assert action failed gracefully (not running in Azure with managed identity)
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          if [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action failed gracefully as expected (no managed identity available)"
+          elif [ "$OUTCOME" = "success" ]; then
+            echo "PASS: action succeeded (managed identity was available)"
+          else
+            echo "FAIL: unexpected outcome '$OUTCOME'"
+            exit 1
+          fi

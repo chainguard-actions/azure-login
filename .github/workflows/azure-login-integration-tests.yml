@@ -1,0 +1,106 @@
+name: Run Azure Login Integration Tests
+on: 
+  workflow_dispatch:
+  schedule:
+    - cron:  '0 */3 * * *'
+permissions:
+      id-token: write
+      contents: write
+
+jobs: 
+
+  az-login-test-non-oidc:
+    runs-on: ubuntu-latest
+#     continue-on-error: true
+    steps:
+      - name: 'Az CLI login with subscription'
+        uses: azure/login@7ddb5af1ef8758cf1353cf3b42f940aee27ba21c # v3
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          
+      - run: |
+          az account show --output none
+          az vm list --output none
+          
+      - name: 'Az CLI login without subscription'
+        uses: azure/login@7ddb5af1ef8758cf1353cf3b42f940aee27ba21c # v3
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          allow-no-subscriptions: true
+          
+      - run: |
+          az account show --output none
+          
+      - name: 'Azure PowerShell login with subscription'
+        uses: azure/login@7ddb5af1ef8758cf1353cf3b42f940aee27ba21c # v3
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          enable-AzPSSession: true
+          
+      - uses: azure/powershell@f5b8adcfff1904872c7b98d4012d4914d74b1a82 # v3
+        with:
+          inlineScript: "(Get-AzContext).Environment.Name"
+          azPSVersion: "latest"
+          
+      - name: 'Azure PowerShell login without subscription'
+        uses: azure/login@7ddb5af1ef8758cf1353cf3b42f940aee27ba21c # v3
+        with:
+          creds: ${{secrets.AZURE_CREDENTIALS}}
+          enable-AzPSSession: true
+          allow-no-subscriptions: true
+        
+      - uses: azure/powershell@f5b8adcfff1904872c7b98d4012d4914d74b1a82 # v3
+        with:
+          inlineScript: "(Get-AzContext).Environment.Name"
+          azPSVersion: "latest"
+
+  az-login-test-oidc:
+    runs-on: ubuntu-latest
+#     continue-on-error: true
+    steps:
+      - name: 'Az CLI login with subscription'
+        uses: azure/login@7ddb5af1ef8758cf1353cf3b42f940aee27ba21c # v3
+        with:
+          client-id: ${{ secrets.AZURE_CLIENTID }}
+          tenant-id: ${{ secrets.AZURE_TENANTID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTIONID }} 
+        
+      - run: |
+          az account show --output none
+          az vm list --output none
+          
+      - name: 'Az CLI login without subscription'
+        uses: azure/login@7ddb5af1ef8758cf1353cf3b42f940aee27ba21c # v3
+        with:
+          client-id: ${{ secrets.AZURE_CLIENTID }}
+          tenant-id: ${{ secrets.AZURE_TENANTID }}
+          allow-no-subscriptions: true
+          
+      - run: |
+          az account show --output none
+          
+      - name: 'Azure PowerShell login with subscription'
+        uses: azure/login@7ddb5af1ef8758cf1353cf3b42f940aee27ba21c # v3
+        with:
+          client-id: ${{ secrets.AZURE_CLIENTID }}
+          tenant-id: ${{ secrets.AZURE_TENANTID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTIONID }} 
+          enable-AzPSSession: true
+          
+      - uses: azure/powershell@f5b8adcfff1904872c7b98d4012d4914d74b1a82 # v3
+        with:
+          inlineScript: "(Get-AzContext).Environment.Name"
+          azPSVersion: "latest"
+          
+      - name: 'Azure PowerShell login without subscription'
+        uses: azure/login@7ddb5af1ef8758cf1353cf3b42f940aee27ba21c # v3
+        with:
+          client-id: ${{ secrets.AZURE_CLIENTID }}
+          tenant-id: ${{ secrets.AZURE_TENANTID }}
+          enable-AzPSSession: true
+          allow-no-subscriptions: true
+        
+      - uses: azure/powershell@f5b8adcfff1904872c7b98d4012d4914d74b1a82 # v3
+        with:
+          inlineScript: "(Get-AzContext).Environment.Name"
+          azPSVersion: "latest"
