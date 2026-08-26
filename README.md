@@ -10,6 +10,7 @@ Hardened by [Chainguard](https://www.chainguard.dev) from the upstream action at
 |---------|-----|-----------------|
 | v3.0.0 | [`v3.0.0`](https://github.com/chainguard-actions/azure-login/tree/v3.0.0) | [`532459e`](https://github.com/azure/login/commit/532459ea530d8321f2fb9bb10d1e0bcf23869a43) |
 | v3.0.1 | [`v3.0.1`](https://github.com/chainguard-actions/azure-login/tree/v3.0.1) | [`f5d393a`](https://github.com/azure/login/commit/f5d393ae46f8fde4be8b75f32e3fc50e654ad0ca) |
+| v3.0.2 | [`v3.0.2`](https://github.com/chainguard-actions/azure-login/tree/v3.0.2) | [`7ddb5af`](https://github.com/azure/login/commit/7ddb5af1ef8758cf1353cf3b42f940aee27ba21c) |
 
 ## Privacy
 
