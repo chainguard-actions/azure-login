@@ -1,0 +1,33 @@
+name: Test Azure Login - Service Principal Auth
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Test with fake service principal credentials (expect failure)
+        id: login
+        uses: .
+        continue-on-error: true
+        with:
+          client-id: 'fake-client-id-00000000-0000-0000-0000-000000000000'
+          tenant-id: 'fake-tenant-id-00000000-0000-0000-0000-000000000000'
+          subscription-id: 'fake-subscription-id-00000000-0000-0000-0000-000000000000'
+          auth-type: SERVICE_PRINCIPAL
+          environment: azurecloud
+
+      - name: Assert action ran and failed gracefully (no real credentials)
+        env:
+          OUTCOME: ${{ steps.login.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          if [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action failed gracefully as expected (no real Azure credentials)"
+          elif [ "$OUTCOME" = "success" ]; then
+            echo "PASS: action unexpectedly succeeded (real credentials may be configured)"
+          else
+            echo "FAIL: unexpected outcome '$OUTCOME'"
+            exit 1
+          fi

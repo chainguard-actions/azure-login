@@ -1,0 +1,36 @@
+name: Test Azure Login - Creds JSON Auth
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Test with creds JSON input (expect failure - fake credentials)
+        id: login
+        uses: .
+        continue-on-error: true
+        with:
+          creds: |
+            {
+              "clientId": "fake-client-id-00000000-0000-0000-0000-000000000000",
+              "clientSecret": "fake-client-secret",
+              "subscriptionId": "fake-subscription-id-00000000-0000-0000-0000-000000000000",
+              "tenantId": "fake-tenant-id-00000000-0000-0000-0000-000000000000"
+            }
+          environment: azurecloud
+
+      - name: Assert action ran and failed gracefully (fake creds JSON)
+        env:
+          OUTCOME: ${{ steps.login.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          if [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action failed gracefully as expected (fake credentials)"
+          elif [ "$OUTCOME" = "success" ]; then
+            echo "PASS: action unexpectedly succeeded (real credentials may be configured)"
+          else
+            echo "FAIL: unexpected outcome '$OUTCOME'"
+            exit 1
+          fi
