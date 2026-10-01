@@ -8,6 +8,7 @@ Hardened by [Chainguard](https://www.chainguard.dev) from the upstream action at
 
 | Version | Tag | Upstream commit |
 |---------|-----|-----------------|
+| v2.1.1 | [`v2.1.1`](https://github.com/chainguard-actions/azure-login/tree/v2.1.1) | [`6c25186`](https://github.com/azure/login/commit/6c251865b4e6290e7b78be643ea2d005bc51f69a) |
 | v2.2.0 | [`v2.2.0`](https://github.com/chainguard-actions/azure-login/tree/v2.2.0) | [`a65d910`](https://github.com/azure/login/commit/a65d910e8af852a8061c627c456678983e180302) |
 | v3.0.0 | [`v3.0.0`](https://github.com/chainguard-actions/azure-login/tree/v3.0.0) | [`532459e`](https://github.com/azure/login/commit/532459ea530d8321f2fb9bb10d1e0bcf23869a43) |
 | v3.0.1 | [`v3.0.1`](https://github.com/chainguard-actions/azure-login/tree/v3.0.1) | [`f5d393a`](https://github.com/azure/login/commit/f5d393ae46f8fde4be8b75f32e3fc50e654ad0ca) |
