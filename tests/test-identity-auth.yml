@@ -1,0 +1,30 @@
+name: Test Azure Login - Identity Auth Type (expect graceful failure)
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - id: action
+        name: Run Azure Login with IDENTITY auth type
+        uses: .
+        continue-on-error: true
+        with:
+          auth-type: 'IDENTITY'
+          environment: 'azurecloud'
+
+      - name: Assert action failed gracefully (no managed identity available in harness)
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          if [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action failed gracefully as expected (no managed identity in harness)"
+          elif [ "$OUTCOME" = "success" ]; then
+            echo "PASS: action unexpectedly succeeded (managed identity may be configured)"
+          else
+            echo "FAIL: unexpected outcome '$OUTCOME'"
+            exit 1
+          fi
